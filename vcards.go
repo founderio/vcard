@@ -1,13 +1,88 @@
+// See RFC 2425 Mime Content-Type for Directory Information
 package main
 
 import (
 	"fmt"
 	"os"
-	"bufio"
+	"scanner"
 )
 
-func nameValue(name, value string) {
-	fmt.Printf("Name: %s, value: %s\n", name, value)
+
+type ValueType int
+
+const (
+	textListType ValueType = iota
+	GenericurlType
+	DateListType
+	TimeListType
+	DateTimeListType
+	BooleanType
+	IntegerListType
+	FloatListType
+	IanaValueSpecType
+)
+
+type Value struct {
+	Data string
+	Type ValueType
+}
+
+type ContentLineFunc func(group, name string, params map[string]string, values []Value)
+
+func contentLine(group, name string, params map[string]string, values []Value) {
+	fmt.Println(group, name, params, values)
+}
+
+func readGroupName(s *scanner.Scanner) (group, name string) {
+	c := s.Next()
+	var buf []int
+	for c != scanner.EOF {
+		if c == '.' {
+			group = string(buf)
+			buf = []int{}
+		} else if c == ';' || c == ':' {
+			name = string(buf)
+			return
+		} else {
+			buf = append(buf, c)
+		}
+		c = s.Next()
+	}
+	return
+}
+
+func readValues(s *scanner.Scanner) (values []Value) {
+	lastChar := s.Peek()
+	c := lastChar
+	isCRLF := false
+	for c != scanner.EOF {
+		if lastChar == '\r' && c == '\n' {
+			isCRLF = true
+		}
+		if isCRLF {
+			if c == 32 || c == 9 {
+				// unfold
+				isCRLF = false
+			} else {
+				// call handler and return
+				return
+			}
+		}
+		lastChar = c
+		c = s.Next()
+	}
+	return
+}
+
+
+func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
+	group, name := readGroupName(s)
+	var params map[string]string
+	if s.Peek() == ';' {
+		//params = readParameters(s)
+	}
+	values := readValues(s)
+	handler(group, name, params, values)
 }
 
 func main() {
@@ -17,37 +92,9 @@ func main() {
 		return
 	}
 	defer f.Close()
-	reader := bufio.NewReader(f)
-	c, err := reader.ReadByte()
-	var buf []byte
-	escape := false
-	var name string
-	var value string
-	for err == nil {
-		if escape {
-			switch c {
-			case 'n':
-				c = '\n'
-			}
-			buf = append(buf, c)
-			escape = false
-		} else if c == '\\' {
-			escape = true
-		} else if c == ':' {
-			name = string(buf)
-			buf = []byte{}
-			value = ""
-		} else if c == '\n' {
-			value = string(buf)
-			buf = []byte{}
-			nameValue(name, value)
-			name, value = "", ""
-		} else {
-			buf = append(buf, c)
-		}
-		c, err = reader.ReadByte()
-	}
-	if len(name) > 0 {
-		nameValue(name, value)
+	var s scanner.Scanner
+	s.Init(f)
+	for s.Peek() != scanner.EOF {
+		readContentLine(&s, contentLine)
 	}
 }

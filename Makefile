@@ -2,13 +2,13 @@ OFILE_EXT=6
 GC=$(OFILE_EXT)g
 LINK=$(OFILE_EXT)l
 
-all: flip_name
+all: readab
 
 
-flip_name: vcards.go
-	$(GC) vcards.go && $(LINK) -o flip_name vcards.$(OFILE_EXT)
+readab: vcards.go
+	$(GC) vcards.go && $(LINK) -o readab vcards.$(OFILE_EXT)
 
 clean:
-	rm -f *.8 *.6 flip_name
+	rm -f *.8 *.6 readab
 
 

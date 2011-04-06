@@ -11,7 +11,7 @@ import (
 type ValueType int
 
 const (
-	textListType ValueType = iota
+	TextListType ValueType = iota
 	GenericurlType
 	DateListType
 	TimeListType
@@ -34,7 +34,7 @@ func contentLine(group, name string, params map[string]string, values []Value) {
 }
 
 func readGroupName(s *scanner.Scanner) (group, name string) {
-	c := s.Next()
+	c := s.Peek()
 	var buf []int
 	for c != scanner.EOF {
 		if c == '.' {
@@ -46,27 +46,33 @@ func readGroupName(s *scanner.Scanner) (group, name string) {
 		} else {
 			buf = append(buf, c)
 		}
-		c = s.Next()
+		s.Next()
+		c = s.Peek()
 	}
 	return
 }
 
 func readValues(s *scanner.Scanner) (values []Value) {
-	lastChar := s.Peek()
+	lastChar := s.Next()
 	c := lastChar
-	isCRLF := false
+	var buf []int
 	for c != scanner.EOF {
 		if lastChar == '\r' && c == '\n' {
-			isCRLF = true
-		}
-		if isCRLF {
-			if c == 32 || c == 9 {
-				// unfold
-				isCRLF = false
-			} else {
+			la := s.Peek()
+			if la != 32 && la != 9 {
 				// call handler and return
+				if len(buf) > 0 {
+					value := Value{string(buf), TextListType}
+					values = append(values, value)
+				}
 				return
+			} else {
+				// unfold
+				c = s.Next()
 			}
+		}
+		if c != '\n' && c != '\r' && c!= 32 && c != 9 {
+			buf = append(buf, c)
 		}
 		lastChar = c
 		c = s.Next()
@@ -81,6 +87,7 @@ func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	if s.Peek() == ';' {
 		//params = readParameters(s)
 	}
+	s.Next()
 	values := readValues(s)
 	handler(group, name, params, values)
 }

@@ -12,13 +12,19 @@ type ValueType int
 
 const (
 	TextListType ValueType = iota
+	TextType
 	GenericurlType
 	DateListType
+	DateType
 	TimeListType
+	TimeType
 	DateTimeListType
+	DateTimeType
 	BooleanType
 	IntegerListType
+	IntegerType
 	FloatListType
+	FloatType
 	IanaValueSpecType
 )
 
@@ -56,13 +62,14 @@ func readValues(s *scanner.Scanner) (values []Value) {
 	lastChar := s.Next()
 	c := lastChar
 	var buf []int
+	escape := false
 	for c != scanner.EOF {
 		if lastChar == '\r' && c == '\n' {
 			la := s.Peek()
 			if la != 32 && la != 9 {
 				// call handler and return
 				if len(buf) > 0 {
-					value := Value{string(buf), TextListType}
+					value := Value{string(buf), TextType}
 					values = append(values, value)
 				}
 				return
@@ -71,7 +78,16 @@ func readValues(s *scanner.Scanner) (values []Value) {
 				c = s.Next()
 			}
 		}
-		if c != '\n' && c != '\r' && c!= 32 && c != 9 {
+
+		if c == '\\' {
+			escape = true
+		} else if escape {
+			if c == 'n' {
+				c = '\n'
+			}
+			buf = append(buf, c)
+			escape = false
+		} else if c != '\n' && c != '\r' && c != 32 && c != 9 {
 			buf = append(buf, c)
 		}
 		lastChar = c
@@ -80,12 +96,46 @@ func readValues(s *scanner.Scanner) (values []Value) {
 	return
 }
 
+func readParameters(s *scanner.Scanner) (params map[string]string) {
+	lastChar := s.Peek()
+	c := lastChar
+	var buf []int
+	var name string
+	var value string
+	params = make(map[string]string)
+	for c != scanner.EOF {
+		if c == ';' || c == ':' {
+			if name == "" {
+				name = string(buf)
+			} else {
+				value = string(buf)
+			}
+			if name != "" {
+				params[name] = value
+			}
+			if c == ':' {
+				return
+			}
+			buf = []int{}
+			name = ""
+			value = ""
+		} else if c == '=' {
+			name = string(buf)
+			buf = []int{}
+		} else {
+			buf = append(buf, c)
+		}
+		s.Next()
+		c = s.Peek()
+	}
+	return
+}
 
 func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	group, name := readGroupName(s)
 	var params map[string]string
 	if s.Peek() == ';' {
-		//params = readParameters(s)
+		params = readParameters(s)
 	}
 	s.Next()
 	values := readValues(s)

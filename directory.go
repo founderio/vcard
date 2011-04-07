@@ -1,14 +1,10 @@
 // See RFC 2425 Mime Content-Type for Directory Information
-package vcard
+package govcard
 
 import (
-	"fmt"
-	"os"
+	"io"
 	"scanner"
 )
-
-type ContentLineFunc func(group, name string, params map[string]string, values []string)
-
 
 func readGroupName(s *scanner.Scanner) (group, name string) {
 	c := s.Peek()
@@ -110,7 +106,9 @@ func readParameters(s *scanner.Scanner) (params map[string]string) {
 	return
 }
 
-func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
+type ContentLineFunc func(group, name string, params map[string]string, values []string)
+
+func ReadContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	group, name := readGroupName(s)
 	var params map[string]string
 	if s.Peek() == ';' {
@@ -121,20 +119,10 @@ func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	handler(group, name, params, values)
 }
 
-func contentLine(group, name string, params map[string]string, values []string) {
-	fmt.Println(group, name, params, values)
-}
-
-func main() {
-	f, err := os.Open("../../data/addressBook.vcf", os.O_RDONLY, 0666)
-	if err != nil {
-
-		return
-	}
-	defer f.Close()
+func ReadDirectoryInformation(reader io.Reader, contentLine ContentLineFunc) {
 	var s scanner.Scanner
-	s.Init(f)
+	s.Init(reader)
 	for s.Peek() != scanner.EOF {
-		readContentLine(&s, contentLine)
+		ReadContentLine(&s, contentLine)
 	}
 }

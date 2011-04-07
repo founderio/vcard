@@ -1,5 +1,5 @@
 // See RFC 2425 Mime Content-Type for Directory Information
-package directory
+package vcard
 
 import (
 	"fmt"

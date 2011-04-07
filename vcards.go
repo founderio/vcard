@@ -7,37 +7,8 @@ import (
 	"scanner"
 )
 
+type ContentLineFunc func(group, name string, params map[string]string, values []string)
 
-type ValueType int
-
-const (
-	TextListType ValueType = iota
-	TextType
-	GenericurlType
-	DateListType
-	DateType
-	TimeListType
-	TimeType
-	DateTimeListType
-	DateTimeType
-	BooleanType
-	IntegerListType
-	IntegerType
-	FloatListType
-	FloatType
-	IanaValueSpecType
-)
-
-type Value struct {
-	Data string
-	Type ValueType
-}
-
-type ContentLineFunc func(group, name string, params map[string]string, values []Value)
-
-func contentLine(group, name string, params map[string]string, values []Value) {
-	fmt.Println(group, name, params, values)
-}
 
 func readGroupName(s *scanner.Scanner) (group, name string) {
 	c := s.Peek()
@@ -58,24 +29,27 @@ func readGroupName(s *scanner.Scanner) (group, name string) {
 	return
 }
 
-func readValues(s *scanner.Scanner) (values []Value) {
+func readValues(s *scanner.Scanner) (values []string) {
 	lastChar := s.Next()
 	c := lastChar
 	var buf []int
 	escape := false
 	for c != scanner.EOF {
-		if lastChar == '\r' && c == '\n' {
+		if c == '\n' {
 			la := s.Peek()
 			if la != 32 && la != 9 {
 				// call handler and return
 				if len(buf) > 0 {
-					value := Value{string(buf), TextType}
-					values = append(values, value)
+					values = append(values, string(buf))
 				}
 				return
 			} else {
 				// unfold
+				lastChar = la
 				c = s.Next()
+				for c == 32 || c == 9 {
+					c = s.Next()
+				}
 			}
 		}
 
@@ -87,7 +61,12 @@ func readValues(s *scanner.Scanner) (values []Value) {
 			}
 			buf = append(buf, c)
 			escape = false
-		} else if c != '\n' && c != '\r' && c != 32 && c != 9 {
+		} else if c == ';' {
+			if len(buf) > 0 {
+				values = append(values, string(buf))
+				buf = []int{}
+			}
+		} else if c != '\n' && c != '\r' {
 			buf = append(buf, c)
 		}
 		lastChar = c
@@ -140,6 +119,10 @@ func readContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	s.Next()
 	values := readValues(s)
 	handler(group, name, params, values)
+}
+
+func contentLine(group, name string, params map[string]string, values []string) {
+	fmt.Println(group, name, params, values)
 }
 
 func main() {

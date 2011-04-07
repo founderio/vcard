@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"flag"
 	"fmt"
 	"bitbucket.org/llg/govcard"
 )
@@ -11,10 +12,12 @@ func contentLine(group, name string, params map[string]string, values []string) 
 }
 
 func main() {
-	f, err := os.Open("../../data/addressBook.vcf", os.O_RDONLY, 0666)
-	if err != nil {
-		return
+	for _, abpath := range flag.Args() {
+		f, err := os.Open(abpath, os.O_RDONLY, 0666)
+		defer f.Close()
+		if err != nil {
+			return
+		}
+		govcard.ReadDirectoryInformation(f, contentLine)
 	}
-	defer f.Close()
-	govcard.ReadDirectoryInformation(f, contentLine)
 }

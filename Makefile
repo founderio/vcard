@@ -1,14 +1,7 @@
-OFILE_EXT=6
-GC=$(OFILE_EXT)g
-LINK=$(OFILE_EXT)l
+include $(GOROOT)/src/Make.inc
 
-all: readab
+TARG=bitbucket.org/llg/govcard
+GOFILES=\
+	directory.go\
 
-
-readab: vcards.go
-	$(GC) vcards.go && $(LINK) -o readab vcards.$(OFILE_EXT)
-
-clean:
-	rm -f *.8 *.6 readab
-
-
+include $(GOROOT)/src/Make.pkg

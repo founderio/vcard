@@ -25,19 +25,27 @@ func readGroupName(s *scanner.Scanner) (group, name string) {
 	return
 }
 
-func readValues(s *scanner.Scanner) (values []string) {
+// values separated by ';' has a structural meaning
+type StructuredValue []Value
+
+// values seprated by ',' is a multi value
+type Value []string
+
+func readValues(s *scanner.Scanner) (value StructuredValue) {
 	lastChar := s.Next()
 	c := lastChar
 	var buf []int
 	escape := false
+	var val Value
 	for c != scanner.EOF {
 		if c == '\n' {
 			la := s.Peek()
 			if la != 32 && la != 9 {
-				// call handler and return
+				// return
 				if len(buf) > 0 {
-					values = append(values, string(buf))
+					val = append(val, string(buf))
 				}
+				value = append(value, val)
 				return
 			} else {
 				// unfold
@@ -48,20 +56,26 @@ func readValues(s *scanner.Scanner) (values []string) {
 				}
 			}
 		}
-
 		if c == '\\' {
 			escape = true
 		} else if escape {
-			if c == 'n' {
+			if c == 'n' || c == 'N' {
 				c = '\n'
 			}
 			buf = append(buf, c)
 			escape = false
-		} else if c == ';' {
+		} else if c == ',' {
 			if len(buf) > 0 {
-				values = append(values, string(buf))
+				val = append(val, string(buf))
 				buf = []int{}
 			}
+		} else if c == ';' {
+			if len(buf) > 0 {
+				val = append(val, string(buf))
+				buf = []int{}
+			}
+			value = append(value, val)
+			val = Value{}
 		} else if c != '\n' && c != '\r' {
 			buf = append(buf, c)
 		}
@@ -71,27 +85,37 @@ func readValues(s *scanner.Scanner) (values []string) {
 	return
 }
 
-func readParameters(s *scanner.Scanner) (params map[string]string) {
+func readParameters(s *scanner.Scanner) (params map[string]Value) {
 	lastChar := s.Peek()
 	c := lastChar
 	var buf []int
 	var name string
 	var value string
-	params = make(map[string]string)
+	params = make(map[string]Value)
+	var values Value
 	for c != scanner.EOF {
-		if c == ';' || c == ':' {
+		if c == ',' {
+			values = append(values, string(buf))
+			buf = []int{}
+		} else if c == ';' || c == ':' {
 			if name == "" {
 				name = string(buf)
 			} else {
 				value = string(buf)
 			}
 			if name != "" {
-				params[name] = value
+				values = append(values, value)
+				if _, ok := params[name]; ok {
+					params[name] = append(params[name], values...)
+				} else {
+					params[name] = values
+				}
 			}
 			if c == ':' {
 				return
 			}
 			buf = []int{}
+			values = Value{}
 			name = ""
 			value = ""
 		} else if c == '=' {
@@ -106,17 +130,17 @@ func readParameters(s *scanner.Scanner) (params map[string]string) {
 	return
 }
 
-type ContentLineFunc func(group, name string, params map[string]string, values []string)
+type ContentLineFunc func(group, name string, params map[string]Value, value StructuredValue)
 
 func ReadContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	group, name := readGroupName(s)
-	var params map[string]string
+	var params map[string]Value
 	if s.Peek() == ';' {
 		params = readParameters(s)
 	}
 	s.Next()
-	values := readValues(s)
-	handler(group, name, params, values)
+	value := readValues(s)
+	handler(group, name, params, value)
 }
 
 func ReadDirectoryInformation(reader io.Reader, contentLine ContentLineFunc) {

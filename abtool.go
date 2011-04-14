@@ -4,7 +4,7 @@ import (
 	"os"
 	"flag"
 	"fmt"
-	"bitbucket.org/llg/govcard"
+	"bitbucket.org/llg/vcard"
 )
 
 const ( // Constant define address information index in directory information StructuredValue
@@ -69,7 +69,7 @@ type Photo struct {
 	Data     []byte
 }
 
-func contentLine(group, name string, params map[string]govcard.Value, value govcard.StructuredValue) {
+func contentLine(group, name string, params map[string]vcard.Value, value vcard.StructuredValue) {
 	fmt.Println(group, name, params, value)
 }
 
@@ -80,6 +80,6 @@ func main() {
 		if err != nil {
 			return
 		}
-		govcard.ReadDirectoryInformation(f, contentLine)
+		vcard.ReadDirectoryInformation(f, contentLine)
 	}
 }

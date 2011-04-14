@@ -1,5 +1,5 @@
 // See RFC 2425 Mime Content-Type for Directory Information
-package govcard
+package vcard
 
 import (
 	"io"

@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=bitbucket.org/llg/govcard
+TARG=bitbucket.org/llg/vcard
 GOFILES=\
 	directory.go\
 

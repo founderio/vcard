@@ -28,8 +28,32 @@ func readGroupName(s *scanner.Scanner) (group, name string) {
 // values separated by ';' has a structural meaning
 type StructuredValue []Value
 
+func (sv StructuredValue) GetTextList() []string {
+	var textList[]string
+	for _, v := range sv {
+		for _, s := range v {
+			textList = append(textList, s)
+		}
+	}
+	return textList
+}
+
+func (v StructuredValue) GetText() string {
+	if len(v)>0 && len(v[0])>0 {
+		return v[0][0]
+	}
+	return ""
+}
+
 // values seprated by ',' is a multi value
 type Value []string
+
+func (v Value) GetText() string {
+	if len(v)>0 {
+		return v[0]
+	}
+	return ""
+}
 
 func readValues(s *scanner.Scanner) (value StructuredValue) {
 	lastChar := s.Next()
@@ -134,7 +158,7 @@ type ContentLineFunc func(group, name string, params map[string]Value, value Str
 
 func ReadContentLine(s *scanner.Scanner, handler ContentLineFunc) {
 	group, name := readGroupName(s)
-	var params map[string]Value
+	params := make(map[string]Value)
 	if s.Peek() == ';' {
 		params = readParameters(s)
 	}

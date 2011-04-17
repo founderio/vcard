@@ -10,6 +10,12 @@ type DirectoryInformation struct {
 	contentLine ContentLine
 }
 
+type DirectoryEntry struct {
+	group, name string 
+	params map[string]Value
+	value StructuredValue
+}
+
 type ContentLine interface {
 	ContentLine(group, name string, params map[string]Value, value StructuredValue)
 }
@@ -52,11 +58,12 @@ func (di *DirectoryInformation) Read(reader io.Reader) {
 	var s scanner.Scanner
 	s.Init(reader)
 	for s.Peek() != scanner.EOF {
-		di.readContentLine(&s)
+		entry := di.ReadContentLine(&s)
+		di.contentLine.ContentLine(entry.group, entry.name, entry.params, entry.value)
 	}
 }
 
-func (di *DirectoryInformation) readContentLine(s *scanner.Scanner) {
+func (di *DirectoryInformation) ReadContentLine(s *scanner.Scanner) (*DirectoryEntry){
 	group, name := readGroupName(s)
 	params := make(map[string]Value)
 	if s.Peek() == ';' {
@@ -64,7 +71,7 @@ func (di *DirectoryInformation) readContentLine(s *scanner.Scanner) {
 	}
 	s.Next()
 	value := readValues(s)
-	di.contentLine.ContentLine(group, name, params, value)
+	return &DirectoryEntry{group, name, params, value}
 }
 
 func readGroupName(s *scanner.Scanner) (group, name string) {

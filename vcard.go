@@ -30,7 +30,6 @@ type VCard struct {
 	XABShowAs string
 }
 
-
 type Photo struct {
 	Encoding string
 	Type     string
@@ -40,6 +39,11 @@ type Photo struct {
 
 func defaultAddressTypes() (types []string) {
 	return []string{"Intl", "Postal", "Parcel", "Work"}
+}
+
+type DataType interface {
+	GetType() []string
+	HasType(t string) bool
 }
 
 type Address struct {
@@ -90,7 +94,7 @@ const ( // Constant define address information index in directory information St
 )
 
 func (vcard *VCard) Read(di *DirectoryInfoReader) {
-	contentLine := di.NextContentLine()
+	contentLine := di.ReadContentLine()
 	for contentLine != nil {
 		switch contentLine.Name {
 		case "VERSION":
@@ -191,7 +195,75 @@ func (vcard *VCard) Read(di *DirectoryInfoReader) {
 		default:
 			log.Printf("Not read %s, %s: %s\n", contentLine.Group, contentLine.Name, contentLine.Value)
 		}
-		contentLine = di.NextContentLine()
+		contentLine = di.ReadContentLine()
 	}
 }
 
+func (vcard *VCard) Write(di *DirectoryInfoWriter) {
+	di.WriteContentLine(&ContentLine{"", "BEGIN", nil, StructuredValue{Value{"VCARD"}}})
+	di.WriteContentLine(&ContentLine{"", "VERSION", nil, StructuredValue{Value{"3.0"}}})
+	di.WriteContentLine(&ContentLine{"", "FN", nil, StructuredValue{Value{vcard.FormattedName}}})
+	di.WriteContentLine(&ContentLine{"", "N", nil, StructuredValue{vcard.FamilyNames, vcard.GivenNames, vcard.AdditionalNames, vcard.HonorificNames, vcard.HonorificSuffixes}})
+	di.WriteContentLine(&ContentLine{"", "NICKNAME", nil, StructuredValue{vcard.NickNames}})
+	vcard.Photo.Write(di)
+	di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})		
+	for _, addr := range vcard.Addresses {
+		addr.Write(di)
+	}
+	di.WriteContentLine(&ContentLine{"", "X-ABUID", nil, StructuredValue{Value{vcard.XABuid}}})
+	for _, tel := range vcard.Telephones {
+		tel.Write(di)
+	}
+	for _, email := range vcard.Emails {
+		email.Write(di)
+	}
+	di.WriteContentLine(&ContentLine{"", "TITLE", nil, StructuredValue{Value{vcard.Title}}})
+	di.WriteContentLine(&ContentLine{"", "ROLE", nil, StructuredValue{Value{vcard.Role}}})
+	di.WriteContentLine(&ContentLine{"", "ORG", nil, StructuredValue{vcard.Org}})
+	di.WriteContentLine(&ContentLine{"", "CATEGORIES", nil, StructuredValue{vcard.Categories}})
+	di.WriteContentLine(&ContentLine{"", "NOTE", nil, StructuredValue{Value{vcard.Note}}})
+	di.WriteContentLine(&ContentLine{"", "URL", nil, StructuredValue{Value{vcard.URL}}})
+	for _, jab := range vcard.XJabbers {
+		jab.Write(di)
+	}
+	di.WriteContentLine(&ContentLine{"", "X-ABShowAs", nil, StructuredValue{Value{vcard.XABShowAs}}})
+	di.WriteContentLine(&ContentLine{"", "END", nil, StructuredValue{Value{"VCARD"}}})
+}
+
+func (photo *Photo) Write(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	if photo.Encoding != "" {
+		params["ENCODING"] = Value{photo.Encoding}
+	}
+	if photo.Type != "" {
+		params["TYPE"] = Value{photo.Type}
+	}
+	if photo.Value != "" {
+		params["VALUE"] = Value{photo.Value}
+	}
+	di.WriteContentLine(&ContentLine{"", "PHOTO", params, StructuredValue{Value{photo.Data}}})
+}
+
+func (addr *Address) Write(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	params["TYPE"] = addr.Type
+	di.WriteContentLine(&ContentLine{"", "ADR", params, StructuredValue{Value{addr.PostOfficeBox}, Value{addr.ExtendedAddress}, Value{addr.Street}, Value{addr.Locality}, Value{addr.Region}, Value{addr.PostalCode}, Value{addr.CountryName}}})
+}
+
+func (tel *Telephone) Write(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	params["TYPE"] = tel.Type
+	di.WriteContentLine(&ContentLine{"", "TEL", params, StructuredValue{Value{tel.Number}}})
+}
+
+func (email *Email) Write(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	params["TYPE"] = email.Type
+	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{email.Address}}})
+}
+
+func (jab *XJabber) Write(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	params["TYPE"] = jab.Type
+	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{jab.Address}}})
+}

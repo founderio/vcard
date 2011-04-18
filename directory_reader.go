@@ -7,7 +7,7 @@ import (
 )
 
 type DirectoryInfoReader struct {
-	scan	*scanner.Scanner
+	scan *scanner.Scanner
 }
 
 func NewDirectoryInfoReader(reader io.Reader) *DirectoryInfoReader {
@@ -16,7 +16,7 @@ func NewDirectoryInfoReader(reader io.Reader) *DirectoryInfoReader {
 	return &DirectoryInfoReader{&s}
 }
 
-func (di *DirectoryInfoReader) NextContentLine() (*ContentLine) {
+func (di *DirectoryInfoReader) ReadContentLine() *ContentLine {
 	if di.scan.Peek() == scanner.EOF {
 		return nil
 	}

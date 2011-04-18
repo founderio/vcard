@@ -1,14 +1,12 @@
 package vcard
 
 import (
-		"log"
-		"io"
+	"log"
 )
 
 type AddressBook struct {
 	Contacts []VCard
 }
-
 
 
 func (ab *AddressBook) LastContact() *VCard {
@@ -19,9 +17,9 @@ func (ab *AddressBook) LastContact() *VCard {
 }
 
 func (ab *AddressBook) Read(di *DirectoryInfoReader) {
-	contentLine := di.NextContentLine()
+	contentLine := di.ReadContentLine()
 	for contentLine != nil {
-		switch (contentLine.Name) {
+		switch contentLine.Name {
 		case "BEGIN":
 			if contentLine.Value.GetText() == "VCARD" {
 				var vcard VCard
@@ -31,11 +29,12 @@ func (ab *AddressBook) Read(di *DirectoryInfoReader) {
 		default:
 			log.Printf("Not read %s, %s: %s\n", contentLine.Group, contentLine.Name, contentLine.Value)
 		}
-		contentLine = di.NextContentLine()
+		contentLine = di.ReadContentLine()
 	}
 }
 
-func (v *AddressBook) Write(writer io.Writer) {
-	//di := NewDirectoryInformation(v)
-	//di.Write(writer)
+func (ab *AddressBook) Write(di *DirectoryInfoWriter) {
+	for _, vcard := range ab.Contacts {
+		vcard.Write(di)
+	}
 }

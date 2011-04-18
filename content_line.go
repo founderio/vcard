@@ -1,9 +1,9 @@
 package vcard
 
 type ContentLine struct {
-	Group, Name string 
-	Params map[string]Value
-	Value StructuredValue
+	Group, Name string
+	Params      map[string]Value
+	Value       StructuredValue
 }
 
 // values separated by ';' has a structural meaning

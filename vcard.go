@@ -93,7 +93,7 @@ const ( // Constant define address information index in directory information St
 	addressSize     = countryName + 1
 )
 
-func (vcard *VCard) Read(di *DirectoryInfoReader) {
+func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 	contentLine := di.ReadContentLine()
 	for contentLine != nil {
 		switch contentLine.Name {
@@ -199,38 +199,61 @@ func (vcard *VCard) Read(di *DirectoryInfoReader) {
 	}
 }
 
-func (vcard *VCard) Write(di *DirectoryInfoWriter) {
+func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	di.WriteContentLine(&ContentLine{"", "BEGIN", nil, StructuredValue{Value{"VCARD"}}})
 	di.WriteContentLine(&ContentLine{"", "VERSION", nil, StructuredValue{Value{"3.0"}}})
 	di.WriteContentLine(&ContentLine{"", "FN", nil, StructuredValue{Value{vcard.FormattedName}}})
 	di.WriteContentLine(&ContentLine{"", "N", nil, StructuredValue{vcard.FamilyNames, vcard.GivenNames, vcard.AdditionalNames, vcard.HonorificNames, vcard.HonorificSuffixes}})
-	di.WriteContentLine(&ContentLine{"", "NICKNAME", nil, StructuredValue{vcard.NickNames}})
-	vcard.Photo.Write(di)
-	di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})		
-	for _, addr := range vcard.Addresses {
-		addr.Write(di)
+	if len(vcard.NickNames) != 0 {
+		di.WriteContentLine(&ContentLine{"", "NICKNAME", nil, StructuredValue{vcard.NickNames}})
 	}
-	di.WriteContentLine(&ContentLine{"", "X-ABUID", nil, StructuredValue{Value{vcard.XABuid}}})
+	vcard.Photo.WriteTo(di)
+	if len(vcard.Birthday) != 0 {
+		di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})		
+	}
+	for _, addr := range vcard.Addresses {
+		addr.WriteTo(di)
+	}
+	if len(vcard.XABuid) != 0 {
+		di.WriteContentLine(&ContentLine{"", "X-ABUID", nil, StructuredValue{Value{vcard.XABuid}}})
+	}
 	for _, tel := range vcard.Telephones {
-		tel.Write(di)
+		tel.WriteTo(di)
 	}
 	for _, email := range vcard.Emails {
-		email.Write(di)
+		email.WriteTo(di)
 	}
-	di.WriteContentLine(&ContentLine{"", "TITLE", nil, StructuredValue{Value{vcard.Title}}})
-	di.WriteContentLine(&ContentLine{"", "ROLE", nil, StructuredValue{Value{vcard.Role}}})
-	di.WriteContentLine(&ContentLine{"", "ORG", nil, StructuredValue{vcard.Org}})
-	di.WriteContentLine(&ContentLine{"", "CATEGORIES", nil, StructuredValue{vcard.Categories}})
-	di.WriteContentLine(&ContentLine{"", "NOTE", nil, StructuredValue{Value{vcard.Note}}})
-	di.WriteContentLine(&ContentLine{"", "URL", nil, StructuredValue{Value{vcard.URL}}})
+	if len(vcard.XABuid) != 0 {
+		di.WriteContentLine(&ContentLine{"", "TITLE", nil, StructuredValue{Value{vcard.Title}}})
+	}
+	if len(vcard.Role) != 0 {
+		di.WriteContentLine(&ContentLine{"", "ROLE", nil, StructuredValue{Value{vcard.Role}}})
+	}
+	if len(vcard.Org) != 0 {
+		di.WriteContentLine(&ContentLine{"", "ORG", nil, StructuredValue{vcard.Org}})
+	}
+	if len(vcard.Categories) != 0 {
+		di.WriteContentLine(&ContentLine{"", "CATEGORIES", nil, StructuredValue{vcard.Categories}})
+	}
+	if len(vcard.Note) != 0 {
+		di.WriteContentLine(&ContentLine{"", "NOTE", nil, StructuredValue{Value{vcard.Note}}})
+	}
+	if len(vcard.URL) != 0 {
+		di.WriteContentLine(&ContentLine{"", "URL", nil, StructuredValue{Value{vcard.URL}}})
+	}
 	for _, jab := range vcard.XJabbers {
-		jab.Write(di)
+		jab.WriteTo(di)
 	}
-	di.WriteContentLine(&ContentLine{"", "X-ABShowAs", nil, StructuredValue{Value{vcard.XABShowAs}}})
+	if len(vcard.XABShowAs) != 0 {
+		di.WriteContentLine(&ContentLine{"", "X-ABShowAs", nil, StructuredValue{Value{vcard.XABShowAs}}})
+	}
 	di.WriteContentLine(&ContentLine{"", "END", nil, StructuredValue{Value{"VCARD"}}})
 }
 
-func (photo *Photo) Write(di *DirectoryInfoWriter) {
+func (photo *Photo) WriteTo(di *DirectoryInfoWriter) {
+	if len(photo.Data) == 0 {
+		return
+	}
 	params := make(map[string]Value)
 	if photo.Encoding != "" {
 		params["ENCODING"] = Value{photo.Encoding}
@@ -244,25 +267,25 @@ func (photo *Photo) Write(di *DirectoryInfoWriter) {
 	di.WriteContentLine(&ContentLine{"", "PHOTO", params, StructuredValue{Value{photo.Data}}})
 }
 
-func (addr *Address) Write(di *DirectoryInfoWriter) {
+func (addr *Address) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["TYPE"] = addr.Type
 	di.WriteContentLine(&ContentLine{"", "ADR", params, StructuredValue{Value{addr.PostOfficeBox}, Value{addr.ExtendedAddress}, Value{addr.Street}, Value{addr.Locality}, Value{addr.Region}, Value{addr.PostalCode}, Value{addr.CountryName}}})
 }
 
-func (tel *Telephone) Write(di *DirectoryInfoWriter) {
+func (tel *Telephone) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["TYPE"] = tel.Type
 	di.WriteContentLine(&ContentLine{"", "TEL", params, StructuredValue{Value{tel.Number}}})
 }
 
-func (email *Email) Write(di *DirectoryInfoWriter) {
+func (email *Email) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["TYPE"] = email.Type
 	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{email.Address}}})
 }
 
-func (jab *XJabber) Write(di *DirectoryInfoWriter) {
+func (jab *XJabber) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["TYPE"] = jab.Type
 	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{jab.Address}}})

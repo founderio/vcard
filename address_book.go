@@ -16,14 +16,14 @@ func (ab *AddressBook) LastContact() *VCard {
 	return nil
 }
 
-func (ab *AddressBook) Read(di *DirectoryInfoReader) {
+func (ab *AddressBook) ReadFrom(di *DirectoryInfoReader) {
 	contentLine := di.ReadContentLine()
 	for contentLine != nil {
 		switch contentLine.Name {
 		case "BEGIN":
 			if contentLine.Value.GetText() == "VCARD" {
 				var vcard VCard
-				vcard.Read(di)
+				vcard.ReadFrom(di)
 				ab.Contacts = append(ab.Contacts, vcard)
 			}
 		default:
@@ -33,8 +33,8 @@ func (ab *AddressBook) Read(di *DirectoryInfoReader) {
 	}
 }
 
-func (ab *AddressBook) Write(di *DirectoryInfoWriter) {
+func (ab *AddressBook) WriteTo(di *DirectoryInfoWriter) {
 	for _, vcard := range ab.Contacts {
-		vcard.Write(di)
+		vcard.WriteTo(di)
 	}
 }

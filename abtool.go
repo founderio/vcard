@@ -18,7 +18,8 @@ func main() {
 		log.Printf("Can't read file %s\n", abpath)
 		return
 	}
-	addressBook.Read(f)
+	di := vcard.NewDirectoryInfoReader(f)
+	addressBook.Read(di)
 	log.Printf("Read %s\n", abpath)
 	//}
 }

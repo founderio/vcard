@@ -50,22 +50,28 @@ func (di *DirectoryInfoWriter) WriteValue(value string) {
 	i := 0
 	for _, c := range value {
 		if i == 76 {
-			// if line to long fold value on multiple line
+			// if line to long fold value on multiple line 
 			io.WriteString(di.writer, "\n  ")
-			i=0;
+			i = 0
 		}
-		if c == '\r' {
-			io.WriteString(di.writer, "\\r")
-		} else if c == '\n' {
-			io.WriteString(di.writer, "\\n")
-		} else if c == ';' {
-			io.WriteString(di.writer, "\\;")
-		} else if c == ',' {
-			io.WriteString(di.writer, "\\,")
-		} else {
-			// c is an int representing a character? convert it to string (Multibyte character)
-			io.WriteString(di.writer, string(c))
-		}		
+		var e string
+		switch c {
+		case '\r':
+			e = `\r`
+		case '\n':
+			e = `\n`
+		case ';':
+			e = `\;`
+		case ':':
+			e = `\:`
+		case ',':
+			e = `\,`
+		default:
+			// c is an int representing a Unicode code point. 
+			// convert it to string (UTF-8 encoded character) 
+			e = string(c)
+		}
+		io.WriteString(di.writer, e)
 		i++
 	}
 }

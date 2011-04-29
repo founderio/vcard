@@ -30,6 +30,22 @@ type VCard struct {
 	XABShowAs string
 }
 
+func displayStrings( ss []string) (display string){
+	for _, s := range ss {
+		display += s +", "
+	}
+	return display
+}
+
+func (v VCard) String() (s string) {
+	s = "VCard version: " + v.Version + "\n"
+	s += "FormattedName:" + v.FormattedName + "\n"
+	s += "FamilyNames:" + displayStrings(v.FamilyNames) + "\n"
+	s += "GivenNames:" + displayStrings(v.GivenNames) + "\n"
+	s += "AdditionalNames:" + displayStrings(v.AdditionalNames) + "\n"
+	return s
+}
+
 type Photo struct {
 	Encoding string
 	Type     string
@@ -149,7 +165,7 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			vcard.XABuid = contentLine.Value.GetText()
 		case "TEL":
 			var tel Telephone
-			if param, ok := contentLine.Params["TYPE"]; ok {
+			if param, ok := contentLine.Params["type"]; ok {
 				tel.Type = param
 			} else {
 				tel.Type = []string{"voice"}
@@ -158,7 +174,7 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			vcard.Telephones = append(vcard.Telephones, tel)
 		case "EMAIL":
 			var email Email
-			if param, ok := contentLine.Params["TYPE"]; ok {
+			if param, ok := contentLine.Params["type"]; ok {
 				email.Type = param
 			} else {
 				email.Type = []string{"HOME"}
@@ -180,7 +196,7 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 		case "X-JABBER":
 		case "X-GTALK":
 			var jabber XJabber
-			if param, ok := contentLine.Params["TYPE"]; ok {
+			if param, ok := contentLine.Params["type"]; ok {
 				jabber.Type = param
 			} else {
 				jabber.Type = []string{"HOME"}
@@ -259,7 +275,7 @@ func (photo *Photo) WriteTo(di *DirectoryInfoWriter) {
 		params["ENCODING"] = Value{photo.Encoding}
 	}
 	if photo.Type != "" {
-		params["TYPE"] = Value{photo.Type}
+		params["type"] = Value{photo.Type}
 	}
 	if photo.Value != "" {
 		params["VALUE"] = Value{photo.Value}
@@ -269,24 +285,24 @@ func (photo *Photo) WriteTo(di *DirectoryInfoWriter) {
 
 func (addr *Address) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
-	params["TYPE"] = addr.Type
+	params["type"] = addr.Type
 	di.WriteContentLine(&ContentLine{"", "ADR", params, StructuredValue{Value{addr.PostOfficeBox}, Value{addr.ExtendedAddress}, Value{addr.Street}, Value{addr.Locality}, Value{addr.Region}, Value{addr.PostalCode}, Value{addr.CountryName}}})
 }
 
 func (tel *Telephone) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
-	params["TYPE"] = tel.Type
+	params["type"] = tel.Type
 	di.WriteContentLine(&ContentLine{"", "TEL", params, StructuredValue{Value{tel.Number}}})
 }
 
 func (email *Email) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
-	params["TYPE"] = email.Type
+	params["type"] = email.Type
 	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{email.Address}}})
 }
 
 func (jab *XJabber) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
-	params["TYPE"] = jab.Type
+	params["type"] = jab.Type
 	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{jab.Address}}})
 }

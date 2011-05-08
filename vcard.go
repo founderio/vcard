@@ -230,16 +230,13 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	for _, addr := range vcard.Addresses {
 		addr.WriteTo(di)
 	}
-	if len(vcard.XABuid) != 0 {
-		di.WriteContentLine(&ContentLine{"", "X-ABUID", nil, StructuredValue{Value{vcard.XABuid}}})
-	}
 	for _, tel := range vcard.Telephones {
 		tel.WriteTo(di)
 	}
 	for _, email := range vcard.Emails {
 		email.WriteTo(di)
 	}
-	if len(vcard.XABuid) != 0 {
+	if len(vcard.Title) != 0 {
 		di.WriteContentLine(&ContentLine{"", "TITLE", nil, StructuredValue{Value{vcard.Title}}})
 	}
 	if len(vcard.Role) != 0 {
@@ -263,6 +260,9 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	if len(vcard.XABShowAs) != 0 {
 		di.WriteContentLine(&ContentLine{"", "X-ABShowAs", nil, StructuredValue{Value{vcard.XABShowAs}}})
 	}
+	if len(vcard.XABuid) != 0 {
+		di.WriteContentLine(&ContentLine{"", "X-ABUID", nil, StructuredValue{Value{vcard.XABuid}}})
+	}
 	di.WriteContentLine(&ContentLine{"", "END", nil, StructuredValue{Value{"VCARD"}}})
 }
 
@@ -279,6 +279,9 @@ func (photo *Photo) WriteTo(di *DirectoryInfoWriter) {
 	}
 	if photo.Value != "" {
 		params["VALUE"] = Value{photo.Value}
+	}
+	if photo.Encoding == "" && photo.Type == "" && photo.Value == "" {
+			params["BASE64"] = Value{}
 	}
 	di.WriteContentLine(&ContentLine{"", "PHOTO", params, StructuredValue{Value{photo.Data}}})
 }
@@ -304,5 +307,5 @@ func (email *Email) WriteTo(di *DirectoryInfoWriter) {
 func (jab *XJabber) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["type"] = jab.Type
-	di.WriteContentLine(&ContentLine{"", "EMAIL", params, StructuredValue{Value{jab.Address}}})
+	di.WriteContentLine(&ContentLine{"", "X-JABBER", params, StructuredValue{Value{jab.Address}}})
 }

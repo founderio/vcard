@@ -22,11 +22,13 @@ func (di *DirectoryInfoWriter) WriteContentLine(contentLine *ContentLine) {
 		for key, values := range contentLine.Params {
 			io.WriteString(di.writer, ";")
 			io.WriteString(di.writer, key)
-			io.WriteString(di.writer, "=")
-			for vi := 0; vi < len(values); vi++ {
-				io.WriteString(di.writer, values[vi])
-				if vi+1 < len(values) {
-					io.WriteString(di.writer, ",")
+			if len(values) > 0 {
+				io.WriteString(di.writer, "=")
+				for vi := 0; vi < len(values); vi++ {
+					io.WriteString(di.writer, values[vi])
+					if vi+1 < len(values) {
+						io.WriteString(di.writer, ",")
+					}
 				}
 			}
 		}

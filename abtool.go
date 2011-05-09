@@ -8,6 +8,7 @@ import (
 	"log"
 	"bitbucket.org/llg/vcard"
 	"fmt"
+	"strings"
 )
 
 func ask(msg string, format ...interface{}) string {
@@ -20,8 +21,41 @@ func ask(msg string, format ...interface{}) string {
 	return ""
 }
 
+func removeAdditionalName(ab *vcard.AddressBook) {
+	for i := 0; i < len(ab.Contacts); i++ {
+		contact := &(ab.Contacts[i])
+		if len(contact.AdditionalNames) > 0 {
+			fmt.Println("---------------------------")
+			fmt.Printf("%v\n", contact)
+			contact.AdditionalNames = []string{}
+
+		}
+	}
+}
+
+func capitalizeString(s string) string {
+	return strings.Title(strings.ToLower(s))
+}
+
+func capitalizeStrings(ss []string) []string {
+	for i, s := range ss {
+		ss[i] = capitalizeString(s)
+	}
+	return ss
+}
+
+func capitalize(ab *vcard.AddressBook) {
+	for i := 0; i < len(ab.Contacts); i++ {
+		contact := &(ab.Contacts[i])
+		contact.FormattedName = capitalizeString(contact.FormattedName)
+		contact.GivenNames = capitalizeStrings(contact.GivenNames)
+		contact.FamilyNames = capitalizeStrings(contact.FamilyNames)
+	}
+}
+
 func integrateAdditionalName(ab *vcard.AddressBook) {
-	for _, contact := range ab.Contacts {
+	for i := 0; i < len(ab.Contacts); i++ {
+		contact := &(ab.Contacts[i])
 		if len(contact.AdditionalNames) > 0 {
 			fmt.Println("---------------------------")
 			fmt.Printf("%v\n", contact)
@@ -38,10 +72,12 @@ func integrateAdditionalName(ab *vcard.AddressBook) {
 				contact.GivenNames[0] += " " + contact.AdditionalNames[0]
 				fmt.Printf("result: %s\n", contact.GivenNames[0])
 				contact.FormattedName = displayStrings(contact.FamilyNames, contact.GivenNames)
+				contact.AdditionalNames = []string{}
 			case "f":
 				contact.FamilyNames[0] += " " + contact.AdditionalNames[0]
 				fmt.Printf("result: %s\n", contact.FamilyNames[0])
 				contact.FormattedName = displayStrings(contact.FamilyNames, contact.GivenNames)
+				contact.AdditionalNames = []string{}
 			}
 
 		}
@@ -49,7 +85,8 @@ func integrateAdditionalName(ab *vcard.AddressBook) {
 }
 
 func switchFamilyNamesGivenName(ab *vcard.AddressBook) {
-	for _, contact := range ab.Contacts {
+	for i := 0; i < len(ab.Contacts); i++ {
+		contact := &(ab.Contacts[i])
 		fmt.Println("---------------------------")
 		fmt.Printf("%v\n", contact)
 		msg := "Switch Family Names and Given Names (yes or no) ?\n"
@@ -58,6 +95,7 @@ func switchFamilyNamesGivenName(ab *vcard.AddressBook) {
 			tmp := contact.GivenNames
 			contact.GivenNames = contact.FamilyNames
 			contact.FamilyNames = tmp
+			contact.FormattedName = displayStrings(contact.FamilyNames, contact.GivenNames)
 			fmt.Printf("Given names: %s\n", contact.GivenNames)
 			fmt.Printf("FamilyNames names: %s\n", contact.FamilyNames)
 
@@ -90,8 +128,10 @@ func indexOf(ars []string, value string) int {
 }
 
 func mobilePhone(ab *vcard.AddressBook) {
-	for _, contact := range ab.Contacts {
-		for _, phone := range contact.Telephones {
+	for i := 0; i < len(ab.Contacts); i++ {
+		contact := &(ab.Contacts[i])
+		for j := 0; j < len(contact.Telephones); j++ {
+			phone := &(contact.Telephones[j])
 			if len(phone.Number)  > 2 && phone.Number[0:2] == "06" && indexOf(phone.Type, "CELL") == -1 && indexOf(phone.Type, "cell") == -1 {
 				fmt.Println("---------------------------")
 				fmt.Printf("%v\n", contact)
@@ -148,9 +188,12 @@ func main() {
 		addressBook.ReadFrom(reader)
 		log.Printf("Read %s\n", abpath)
 	}
-	switchFamilyNamesGivenName(&addressBook)
+	/*switchFamilyNamesGivenName(&addressBook)
 	integrateAdditionalName(&addressBook)
 	mobilePhone(&addressBook)
+	removeAdditionalName(&addressBook)
+	*/
+	capitalize(&addressBook)
 	writer := vcard.NewDirectoryInfoWriter(output)
 	addressBook.WriteTo(writer)
 	log.Printf("Write %s\n", *outputFilename)

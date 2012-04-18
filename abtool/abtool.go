@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
-	"io"
+	"bitbucket.org/llg/vcard"
 	"bufio"
 	"flag"
-	"log"
-	"bitbucket.org/llg/vcard"
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"strings"
 )
 
@@ -103,15 +103,15 @@ func switchFamilyNamesGivenName(ab *vcard.AddressBook) {
 	}
 }
 
-func displayStrings(sss ...[]string) (display string){
+func displayStrings(sss ...[]string) (display string) {
 	for i, ss := range sss {
 		for j, s := range ss {
 			display += s
-			if j +1 < len(ss) {
+			if j+1 < len(ss) {
 				display += " "
 			}
 		}
-		if i + 1 < len(sss) && len(sss[i+1]) > 0 {
+		if i+1 < len(sss) && len(sss[i+1]) > 0 {
 			display += " "
 		}
 	}
@@ -132,7 +132,7 @@ func mobilePhone(ab *vcard.AddressBook) {
 		contact := &(ab.Contacts[i])
 		for j := 0; j < len(contact.Telephones); j++ {
 			phone := &(contact.Telephones[j])
-			if len(phone.Number)  > 2 && phone.Number[0:2] == "06" && indexOf(phone.Type, "CELL") == -1 && indexOf(phone.Type, "cell") == -1 {
+			if len(phone.Number) > 2 && phone.Number[0:2] == "06" && indexOf(phone.Type, "CELL") == -1 && indexOf(phone.Type, "cell") == -1 {
 				fmt.Println("---------------------------")
 				fmt.Printf("%v\n", contact)
 				//msg := "Is it a portable %s (yes or no) ?\n"
@@ -141,17 +141,16 @@ func mobilePhone(ab *vcard.AddressBook) {
 				case "y":
 					ipref := indexOf(phone.Type, "pref")
 					if ipref != -1 {
-						phone.Type = []string{"pref", "CELL"}	
+						phone.Type = []string{"pref", "CELL"}
 					} else {
-						phone.Type = []string{"CELL"}	
+						phone.Type = []string{"CELL"}
 					}
-					
+
 				}
 			}
 		}
 	}
 }
-
 
 func main() {
 	var output io.Writer

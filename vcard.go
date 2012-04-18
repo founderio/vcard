@@ -30,9 +30,9 @@ type VCard struct {
 	XABShowAs string
 }
 
-func displayStrings( ss []string) (display string){
+func displayStrings(ss []string) (display string) {
 	for _, s := range ss {
-		display += s +", "
+		display += s + ", "
 	}
 	return display
 }
@@ -225,7 +225,7 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	}
 	vcard.Photo.WriteTo(di)
 	if len(vcard.Birthday) != 0 {
-		di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})		
+		di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})
 	}
 	for _, addr := range vcard.Addresses {
 		addr.WriteTo(di)
@@ -281,7 +281,7 @@ func (photo *Photo) WriteTo(di *DirectoryInfoWriter) {
 		params["VALUE"] = Value{photo.Value}
 	}
 	if photo.Encoding == "" && photo.Type == "" && photo.Value == "" {
-			params["BASE64"] = Value{}
+		params["BASE64"] = Value{}
 	}
 	di.WriteContentLine(&ContentLine{"", "PHOTO", params, StructuredValue{Value{photo.Data}}})
 }

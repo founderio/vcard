@@ -8,7 +8,6 @@ type AddressBook struct {
 	Contacts []VCard
 }
 
-
 func (ab *AddressBook) LastContact() *VCard {
 	if len(ab.Contacts) > 0 {
 		return &ab.Contacts[len(ab.Contacts)-1]

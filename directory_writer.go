@@ -3,10 +3,12 @@ package vcard
 import (
 	"io"
 )
+
 // Permit to serialize Directory Information data as defined by RFC 2425
 type DirectoryInfoWriter struct {
 	writer io.Writer
 }
+
 //create a new DirectoryInfoWriter 
 func NewDirectoryInfoWriter(writer io.Writer) *DirectoryInfoWriter {
 	return &DirectoryInfoWriter{writer}
@@ -47,6 +49,7 @@ func (di *DirectoryInfoWriter) WriteContentLine(contentLine *ContentLine) {
 	}
 	io.WriteString(di.writer, "\r\n")
 }
+
 // this function escape '\n' '\r' ';' ',' character with the '\\' character 
 func (di *DirectoryInfoWriter) WriteValue(value string) {
 	i := 0

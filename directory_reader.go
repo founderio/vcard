@@ -3,7 +3,7 @@ package vcard
 
 import (
 	"io"
-	"scanner"
+	"text/scanner"
 )
 
 type DirectoryInfoReader struct {
@@ -32,11 +32,11 @@ func (di *DirectoryInfoReader) ReadContentLine() *ContentLine {
 
 func (di *DirectoryInfoReader) readGroupName() (group, name string) {
 	c := di.scan.Peek()
-	var buf []int
+	var buf []rune
 	for c != scanner.EOF {
 		if c == '.' {
 			group = string(buf)
-			buf = []int{}
+			buf = []rune{}
 		} else if c == ';' || c == ':' {
 			name = string(buf)
 			return
@@ -52,7 +52,7 @@ func (di *DirectoryInfoReader) readGroupName() (group, name string) {
 func (di *DirectoryInfoReader) readParameters() (params map[string]Value) {
 	lastChar := di.scan.Peek()
 	c := lastChar
-	var buf []int
+	var buf []rune
 	var name string
 	var value string
 	params = make(map[string]Value)
@@ -60,7 +60,7 @@ func (di *DirectoryInfoReader) readParameters() (params map[string]Value) {
 	for c != scanner.EOF {
 		if c == ',' {
 			values = append(values, string(buf))
-			buf = []int{}
+			buf = []rune{}
 		} else if c == ';' || c == ':' {
 			if name == "" {
 				name = string(buf)
@@ -78,13 +78,13 @@ func (di *DirectoryInfoReader) readParameters() (params map[string]Value) {
 			if c == ':' {
 				return
 			}
-			buf = []int{}
+			buf = []rune{}
 			values = Value{}
 			name = ""
 			value = ""
 		} else if c == '=' {
 			name = string(buf)
-			buf = []int{}
+			buf = []rune{}
 		} else {
 			buf = append(buf, c)
 		}
@@ -97,7 +97,7 @@ func (di *DirectoryInfoReader) readParameters() (params map[string]Value) {
 func (di *DirectoryInfoReader) readValues() (value StructuredValue) {
 	lastChar := di.scan.Next()
 	c := lastChar
-	var buf []int
+	var buf []rune
 	escape := false
 	var val Value
 	for c != scanner.EOF {
@@ -130,12 +130,12 @@ func (di *DirectoryInfoReader) readValues() (value StructuredValue) {
 		} else if c == ',' {
 			if len(buf) > 0 {
 				val = append(val, string(buf))
-				buf = []int{}
+				buf = []rune{}
 			}
 		} else if c == ';' {
 			if len(buf) > 0 {
 				val = append(val, string(buf))
-				buf = []int{}
+				buf = []rune{}
 			}
 			value = append(value, val)
 			val = Value{}

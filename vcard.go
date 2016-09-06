@@ -273,6 +273,9 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	for _, jab := range vcard.XJabbers {
 		jab.WriteTo(di)
 	}
+	for _, skype := range vcard.XSkypes {
+		skype.WriteTo(di)
+	}
 	if len(vcard.XABShowAs) != 0 {
 		di.WriteContentLine(&ContentLine{"", "X-ABShowAs", nil, StructuredValue{Value{vcard.XABShowAs}}})
 	}

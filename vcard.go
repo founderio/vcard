@@ -321,8 +321,8 @@ func (jab *XJabber) WriteTo(di *DirectoryInfoWriter) {
 	di.WriteContentLine(&ContentLine{"", "X-JABBER", params, StructuredValue{Value{jab.Address}}})
 }
 
-func (jab *XSkype) WriteTo(di *DirectoryInfoWriter) {
+func (skype *XSkype) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
-	params["type"] = jab.Type
-	di.WriteContentLine(&ContentLine{"", "X-SKYPE", params, StructuredValue{Value{jab.Address}}})
+	params["type"] = skype.Type
+	di.WriteContentLine(&ContentLine{"", "X-SKYPE", params, StructuredValue{Value{skype.Address}}})
 }

@@ -25,6 +25,7 @@ type VCard struct {
 	Note              string
 	URL               string
 	XJabbers          []XJabber
+	XSkypes           []XSkype
 	// mac specific
 	XABuid    string
 	XABShowAs string
@@ -203,6 +204,16 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			}
 			jabber.Address = contentLine.Value.GetText()
 			vcard.XJabbers = append(vcard.XJabbers, jabber)
+		case "X-SKYPE":
+		case "X-SKYPE-USERNAME":
+			var skype XSkype
+			if param, ok := contentLine.Params["type"]; ok {
+				skype.Type = param
+			} else {
+				skype.Type = []string{"HOME"}
+			}
+			skype.Address = contentLine.Value.GetText()
+			vcard.XSkypes = append(vcard.XSkypes, skype)
 		case "X-ABShowAs":
 			vcard.XABShowAs = contentLine.Value.GetText()
 		/*case "X-ABLabel":
@@ -308,4 +319,10 @@ func (jab *XJabber) WriteTo(di *DirectoryInfoWriter) {
 	params := make(map[string]Value)
 	params["type"] = jab.Type
 	di.WriteContentLine(&ContentLine{"", "X-JABBER", params, StructuredValue{Value{jab.Address}}})
+}
+
+func (jab *XSkype) WriteTo(di *DirectoryInfoWriter) {
+	params := make(map[string]Value)
+	params["type"] = jab.Type
+	di.WriteContentLine(&ContentLine{"", "X-SKYPE", params, StructuredValue{Value{jab.Address}}})
 }

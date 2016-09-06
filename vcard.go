@@ -90,6 +90,11 @@ type XJabber struct {
 	Address string
 }
 
+type XSkype struct {
+	Type    []string
+	Address string
+}
+
 const ( // Constant define address information index in directory information StructuredValue
 	familyNames       = 0
 	givenNames        = 1

@@ -145,7 +145,7 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			vcard.Photo.Encoding = contentLine.Params["ENCODING"].GetText()
 			vcard.Photo.Type = contentLine.Params["TYPE"].GetText()
 			vcard.Photo.Value = contentLine.Params["VALUE"].GetText()
-			vcard.Photo.Data = contentLine.Value.GetText()
+			vcard.Photo.Data = contentLine.Value.GetAllText()
 		case "BDAY":
 			vcard.Birthday = contentLine.Value.GetText()
 		case "ADR":

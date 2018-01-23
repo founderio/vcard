@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bitbucket.org/llg/vcard"
+	"github.com/founderio/vcard"
 	"bufio"
 	"flag"
 	"fmt"

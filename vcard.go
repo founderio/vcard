@@ -5,6 +5,7 @@ import (
 )
 
 type VCard struct {
+	Anniversary       string
 	Version           string
 	FormattedName     string
 	FamilyNames       []string
@@ -148,6 +149,8 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			vcard.Photo.Data = contentLine.Value.GetAllText()
 		case "BDAY":
 			vcard.Birthday = contentLine.Value.GetText()
+		case "ANNIVERSARY":
+			vcard.Anniversary = contentLine.Value.GetText()
 		case "ADR":
 			if len(contentLine.Value) == addressSize {
 				var address Address
@@ -242,6 +245,9 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 	vcard.Photo.WriteTo(di)
 	if len(vcard.Birthday) != 0 {
 		di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})
+	}
+	if len(vcard.Anniversary) != 0 {
+		di.WriteContentLine(&ContentLine{"", "ANNIVERSARY", nil, StructuredValue{Value{vcard.Anniversary}}})
 	}
 	for _, addr := range vcard.Addresses {
 		addr.WriteTo(di)

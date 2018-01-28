@@ -5,6 +5,12 @@ import (
 )
 
 type VCard struct {
+	UID string
+	// ProductID refers to the Property PRODID
+	// and denotes the name and version of the software that generated the vCard.
+	ProductID string
+	// Timestamp of the last change to this vCard
+	Revision          string
 	Anniversary       string
 	Version           string
 	FormattedName     string
@@ -227,6 +233,12 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 		/*case "X-ABLabel":
 		case "X-ABADR":
 			// ignore*/
+		case "PRODID":
+			vcard.ProductID = contentLine.Value.GetText()
+		case "UID":
+			vcard.UID = contentLine.Value.GetText()
+		case "REV":
+			vcard.Revision = contentLine.Value.GetText()
 		default:
 			log.Printf("Not read %s, %s: %s\n", contentLine.Group, contentLine.Name, contentLine.Value)
 		}
@@ -243,6 +255,15 @@ func (vcard *VCard) WriteTo(di *DirectoryInfoWriter) {
 		di.WriteContentLine(&ContentLine{"", "NICKNAME", nil, StructuredValue{vcard.NickNames}})
 	}
 	vcard.Photo.WriteTo(di)
+	if len(vcard.UID) != 0 {
+		di.WriteContentLine(&ContentLine{"", "UID", nil, StructuredValue{Value{vcard.UID}}})
+	}
+	if len(vcard.ProductID) != 0 {
+		di.WriteContentLine(&ContentLine{"", "PRODID", nil, StructuredValue{Value{vcard.ProductID}}})
+	}
+	if len(vcard.Revision) != 0 {
+		di.WriteContentLine(&ContentLine{"", "REV", nil, StructuredValue{Value{vcard.Revision}}})
+	}
 	if len(vcard.Birthday) != 0 {
 		di.WriteContentLine(&ContentLine{"", "BDAY", nil, StructuredValue{Value{vcard.Birthday}}})
 	}

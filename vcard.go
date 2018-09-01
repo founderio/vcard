@@ -22,17 +22,23 @@ type VCard struct {
 	NickNames         []string
 	Photo             Photo
 	Birthday          string
-	Addresses         []Address
-	Telephones        []Telephone
-	Emails            []Email
-	Title             string
-	Role              string
-	Org               []string
-	Categories        []string
-	Note              string
-	URL               string
-	XJabbers          []XJabber
-	XSkypes           []XSkype
+	// PlaceOfBirth is defined as BIRTHPLACE in vCard extension rfc6474
+	PlaceOfBirth string
+	// DateOfDeath is defined as DEATHDATE in vCard extension rfc6474
+	DateOfDeath string
+	// PlaceOfDeath is defined as DEATHPLACE in vCard extension rfc6474
+	PlaceOfDeath string
+	Addresses    []Address
+	Telephones   []Telephone
+	Emails       []Email
+	Title        string
+	Role         string
+	Org          []string
+	Categories   []string
+	Note         string
+	URL          string
+	XJabbers     []XJabber
+	XSkypes      []XSkype
 	// mac specific
 	XABuid    string
 	XABShowAs string
@@ -157,6 +163,12 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			vcard.Birthday = contentLine.Value.GetText()
 		case "ANNIVERSARY":
 			vcard.Anniversary = contentLine.Value.GetText()
+		case "BIRTHPLACE":
+			vcard.PlaceOfBirth = contentLine.Value.GetText()
+		case "DEATHPLACE":
+			vcard.PlaceOfDeath = contentLine.Value.GetText()
+		case "DEATHDATE":
+			vcard.DateOfDeath = contentLine.Value.GetText()
 		case "ADR":
 			if len(contentLine.Value) == addressSize {
 				var address Address

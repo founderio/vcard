@@ -32,6 +32,14 @@ func (di *DirectoryInfoReader) ReadContentLine() *ContentLine {
 
 func (di *DirectoryInfoReader) readGroupName() (group, name string) {
 	c := di.scan.Peek()
+
+	// Skip leading linebreaks
+	for c != scanner.EOF && (c == '\r' || c == '\n') {
+		di.scan.Next()
+		c = di.scan.Peek()
+	}
+
+	// Decode group.name
 	var buf []rune
 	for c != scanner.EOF {
 		if c == '.' {

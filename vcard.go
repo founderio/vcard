@@ -240,8 +240,20 @@ func (vcard *VCard) ReadFrom(di *DirectoryInfoReader) {
 			}
 			skype.Address = contentLine.Value.GetText()
 			vcard.XSkypes = append(vcard.XSkypes, skype)
+		// case "X-ICQ":
+		//...
+		// case "X-AIM":
+		//...
+		// case "X-SOCIALPROFILE":
+		//...
 		case "X-ABShowAs":
 			vcard.XABShowAs = contentLine.Value.GetText()
+		// case "X-EVOLUTION-FILE-AS":
+		// 	vcard.XEvolutionFileAs = contentLine.Value.GetText()
+		//case "X-MOZILLA-HTML":
+		//Parse TRUE/FALSE
+		//case "X-EVOLUTION-WEBDAV-ETAG":
+
 		/*case "X-ABLabel":
 		case "X-ABADR":
 			// ignore*/
